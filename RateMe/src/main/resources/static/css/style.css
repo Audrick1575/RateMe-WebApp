@@ -1,0 +1,58 @@
+/* Style personnalisé */
+
+#mapContainer {
+    height: 100%;
+    min-height: 400px;
+}
+
+#detailsPanel {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+}
+
+.star-icon {
+    font-size: 24px;
+    margin-right: 5px;
+    color: lightgray;
+    transition: color 0.2s;
+}
+.star-icon.active {
+    color: gold;
+}
+
+.rating-item {
+    border-bottom: 1px solid #eee;
+    padding: 8px 0;
+}
+.rating-item:last-child {
+    border-bottom: none;
+}
+.rating-user {
+    font-weight: bold;
+}
+.rating-stars {
+    color: gold;
+}
+.rating-date {
+    font-size: 0.8em;
+    color: #777;
+}
+
+.tab-content {
+    height: calc(100vh - 120px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #BewertungenTab > div {
+        flex-direction: column;
+    }
+    #mapContainer {
+        height: 50vh !important;
+    }
+}
+/* Force les modales W3.CSS à s'afficher par-dessus tout */
+.w3-modal {
+    position: fixed !important;
+    z-index: 9999 !important;
+}

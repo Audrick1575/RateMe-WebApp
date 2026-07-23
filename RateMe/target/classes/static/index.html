@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RateMe - Kneipen bewerten</title>
+
+    <!-- W3.CSS (Framework) pour les Tabs, Modales et le style de base -->
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <!-- FontAwesome pour les étoiles et icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Leaflet CSS pour la carte -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Notre CSS personnalisé -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- ==================== BARRE DE NAVIGATION ==================== -->
+    <div class="w3-bar w3-dark-grey w3-padding" style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="w3-bar-item"><i class="fas fa-beer"></i> RateMe</span>
+        <div>
+            <span id="userDisplay" class="w3-text-white" style="margin-right: 15px; display: none;">Willkommen, <span id="usernameSpan"></span></span>
+            <button id="logoutBtn" class="w3-button w3-red w3-round" style="display: none;">Abmelden</button>
+            <button id="deleteAccountBtn" class="w3-button w3-red w3-round" style="display: none; margin-left: 5px;">Konto löschen</button>
+            <button id="loginOpenBtn" class="w3-button w3-green w3-round">Anmelden</button>
+            <button id="registerOpenBtn" class="w3-button w3-blue w3-round">Registrieren</button>
+        </div>
+    </div>
+
+    <!-- ==================== ONGLETS (Tabs) ==================== -->
+    <div class="w3-container w3-margin-top">
+        <div class="w3-bar w3-border-bottom">
+            <button class="w3-bar-item w3-button tablink w3-blue" onclick="openTab(event, 'BewertungenTab')">Bewertungen</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'MeineTab')">Meine Bewertungen</button>
+        </div>
+
+        <!-- ============= ONGLET 1 : Bewertungen (Carte + Détails) ============= -->
+        <div id="BewertungenTab" class="w3-container w3-padding w3-animate-opacity tab-content" style="display:block; height: 80vh;">
+            <div style="display: flex; height: 100%; gap: 10px;">
+                <!-- Colonne gauche : Carte -->
+                <div id="mapContainer" style="flex: 2; height: 100%; border-radius: 8px; border: 1px solid #ccc;"></div>
+                <!-- Colonne droite : Infos + Avis -->
+                <div id="detailsPanel" style="flex: 1; height: 100%; overflow-y: auto; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ccc;">
+                    <h4 id="poiNameDisplay" style="margin-top: 0;">Wähle eine Kneipe auf der Karte</h4>
+                    <div id="poiInfo">
+                        <p><strong>Adresse:</strong> <span id="poiAddress">-</span></p>
+                        <p><strong>Telefon:</strong> <span id="poiPhone">-</span></p>
+                        <p><strong>Küche:</strong> <span id="poiCuisine">-</span></p>
+                    </div>
+                    <hr>
+                    <h5>Bewertungen</h5>
+                    <div id="ratingsList">
+                        <p>Keine Bewertungen vorhanden.</p>
+                    </div>
+                    <hr>
+                    <!-- Formulaire d'ajout d'avis (caché si non connecté) -->
+                    <div id="ratingFormContainer" style="display: none;">
+                        <h5>Bewertung abgeben</h5>
+                        <form id="ratingForm">
+                            <div class="w3-row-padding">
+                                <div class="w3-half">
+                                    <label>Sterne (0-5):</label>
+                                    <div id="starSelector" class="w3-margin-bottom">
+                                        <i class="fas fa-star star-icon" data-value="1" style="cursor:pointer; color:lightgray;"></i>
+                                        <i class="fas fa-star star-icon" data-value="2" style="cursor:pointer; color:lightgray;"></i>
+                                        <i class="fas fa-star star-icon" data-value="3" style="cursor:pointer; color:lightgray;"></i>
+                                        <i class="fas fa-star star-icon" data-value="4" style="cursor:pointer; color:lightgray;"></i>
+                                        <i class="fas fa-star star-icon" data-value="5" style="cursor:pointer; color:lightgray;"></i>
+                                    </div>
+                                    <input type="hidden" id="ratingGrade" value="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label>Kommentar:</label>
+                                <textarea id="ratingComment" class="w3-input w3-border" rows="2" placeholder="Ihre Meinung..."></textarea>
+                            </div>
+                            <div class="w3-margin-top">
+                                <label>Bild (optional):</label>
+                                <input type="file" id="ratingImage" class="w3-input w3-border" accept="image/*">
+                            </div>
+                            <button type="submit" class="w3-button w3-green w3-margin-top w3-round">Absenden</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============= ONGLET 2 : Meine Bewertungen ============= -->
+        <div id="MeineTab" class="w3-container w3-padding w3-animate-opacity tab-content" style="display:none;">
+            <h3>Meine Bewertungen</h3>
+            <div id="myRatingsList">
+                <p>Sie haben noch keine Bewertungen abgegeben.</p>
+            </div>
+
+            <!-- ============ FORMULAIRE DE MODIFICATION (Bonus 5) ============ -->
+            <div id="editRatingForm" style="display: none; margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #f1f1f1;">
+                <h5>Bewertung bearbeiten</h5>
+                <form id="editRatingFormInner">
+                    <input type="hidden" id="editRatingId">
+                    <div>
+                        <label>Sterne (0-5):</label>
+                        <div id="editStarSelector" class="w3-margin-bottom">
+                            <i class="fas fa-star edit-star-icon" data-value="1" style="cursor:pointer; color:lightgray;"></i>
+                            <i class="fas fa-star edit-star-icon" data-value="2" style="cursor:pointer; color:lightgray;"></i>
+                            <i class="fas fa-star edit-star-icon" data-value="3" style="cursor:pointer; color:lightgray;"></i>
+                            <i class="fas fa-star edit-star-icon" data-value="4" style="cursor:pointer; color:lightgray;"></i>
+                            <i class="fas fa-star edit-star-icon" data-value="5" style="cursor:pointer; color:lightgray;"></i>
+                        </div>
+                        <input type="hidden" id="editRatingGrade" value="0">
+                    </div>
+                    <div>
+                        <label>Kommentar:</label>
+                        <textarea id="editRatingComment" class="w3-input w3-border" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="w3-button w3-blue w3-margin-top w3-round">Speichern</button>
+                    <button type="button" id="cancelEditBtn" class="w3-button w3-red w3-margin-top w3-round">Abbrechen</button>
+                </form>
+            </div>
+            <!-- ============ FIN FORMULAIRE DE MODIFICATION ============ -->
+        </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- LES MODALES SONT DÉPLACÉES ICI (TOUT EN BAS DU BODY)                   -->
+    <!-- ====================================================================== -->
+
+    <!-- ==================== MODALE : REGISTRIERUNG ==================== -->
+    <div id="registerModal" class="w3-modal">
+        <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:500px;">
+            <div class="w3-container w3-padding">
+                <span class="w3-button w3-display-topright" onclick="document.getElementById('registerModal').style.display='none'">&times;</span>
+                <h3>Registrieren</h3>
+                <form id="registerForm">
+                    <label>Benutzername</label>
+                    <input type="text" id="regUsername" class="w3-input w3-border" required>
+                    <label>Email</label>
+                    <input type="email" id="regEmail" class="w3-input w3-border" required>
+                    <label>Vorname</label>
+                    <input type="text" id="regFirstname" class="w3-input w3-border" required>
+                    <label>Nachname</label>
+                    <input type="text" id="regLastname" class="w3-input w3-border" required>
+                    <label>Straße</label>
+                    <input type="text" id="regStreet" class="w3-input w3-border" required>
+                    <label>Hausnummer</label>
+                    <input type="text" id="regStreetNr" class="w3-input w3-border" required>
+                    <label>PLZ</label>
+                    <input type="text" id="regZip" class="w3-input w3-border" required>
+                    <label>Stadt</label>
+                    <input type="text" id="regCity" class="w3-input w3-border" required>
+                    <label>Passwort</label>
+                    <input type="password" id="regPassword" class="w3-input w3-border" required>
+                    <button type="submit" class="w3-button w3-blue w3-margin-top w3-round">Registrieren</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODALE : LOGIN ==================== -->
+    <div id="loginModal" class="w3-modal">
+        <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:400px;">
+            <div class="w3-container w3-padding">
+                <span class="w3-button w3-display-topright" onclick="document.getElementById('loginModal').style.display='none'">&times;</span>
+                <h3>Anmelden</h3>
+                <form id="loginForm">
+                    <label>Benutzername</label>
+                    <input type="text" id="loginUsername" class="w3-input w3-border" required>
+                    <label>Passwort</label>
+                    <input type="password" id="loginPassword" class="w3-input w3-border" required>
+                    <button type="submit" class="w3-button w3-green w3-margin-top w3-round">Anmelden</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Notre JavaScript personnalisé -->
+    <script src="/js/app.js"></script>
+
+</body>
+</html>
